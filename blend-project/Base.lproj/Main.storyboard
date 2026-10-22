@@ -1080,6 +1080,8 @@
                         <outlet property="nameLabel" destination="7TS-0l-65I" id="pNm-oT-v06"/>
                         <outlet property="usernameLabel" destination="HgE-P0-ilT" id="pUn-oT-v07"/>
                         <outlet property="shopsCountLabel" destination="E5e-b1-tPo" id="pSc-oT-v08"/>
+                        <outlet property="contentStack" destination="st8-pg-GsZ" id="pCs-oT-v10"/>
+                        <outlet property="ratingsCountLabel" destination="L23-hz-1fP" id="pRc-oT-v11"/>
                         <outlet property="bioLabel" destination="VRE-e1-EHe" id="ovh-BK-SpZ"/>
                         <outlet property="profileImageView" destination="h8i-Rw-Wur" id="A1c-DV-xIf"/>
                     </connections>
@@ -1639,6 +1641,7 @@
                     </view>
                     <connections>
                         <outlet property="commentTextView" destination="qdi-UU-pFB" id="PXt-9K-xf1"/>
+                        <outlet property="titleLabel" destination="THg-Ck-j0Z" id="rTl-oT-v09"/>
                         <outlet property="photoImageView" destination="LYj-nG-4sK" id="ud6-gH-gji"/>
                         <outlet property="scoreLabel" destination="3Dm-z8-dwi" id="N3M-4e-yJb"/>
                         <outletCollection property="ratingLabels" destination="uv5-0u-m30" collectionClass="NSMutableArray" id="Cyl-kw-s9n"/>
