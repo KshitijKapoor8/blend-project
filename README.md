@@ -12,4 +12,4 @@
 ## Deviations
 
 - **Discover radius:** The Discover page should use the radius stored in the user's profile. This is a minor fix planned for the next release.
-- **Ratings:** For now, the proper coffee shop feed is not built so a user's own ratings are simply stored in their profile. We are unsure if we will keep this UI but it demonstrates the functionality for the alpha release.
+- **Ratings:** For now, the proper coffee shop feed is not built so a user's own ratings are simply stored in their profile. We are unsure if we will keep this UI but it demonstrates the functionality for the alpha release. The optional adding of pictures is also not yet fully functional. Bug fix and decision regarding UI will be finalized in beta.
