@@ -6,8 +6,8 @@
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
-import FirebaseStorage // Added
-import PhotosUI        // Added
+import FirebaseStorage
+import PhotosUI
 
 class SettingsViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var bioTextView: UITextView!
@@ -16,7 +16,6 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var radiusSlider: UISlider!
     @IBOutlet weak var radiusLabel: UILabel!
 
-    // Connect this to the new UIImageView you add over the "AK" box
     @IBOutlet weak var profileImageView: UIImageView!
 
     private let bioLimit = 150
@@ -64,34 +63,28 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
         }
     }
 
-    // Show text
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         let current = textView.text as NSString
         return current.replacingCharacters(in: range, with: text).count <= bioLimit
     }
 
-    // If text changed then update the bio
     func textViewDidChange(_ textView: UITextView) {
         updateBioCount()
     }
 
-    // Update bio when triggered on save
     private func updateBioCount() {
         bioCountLabel.text = "\(bioTextView.text.count)/\(bioLimit)"
     }
 
-    // Update radius when triggered on save
     @IBAction func radiusChanged(_ sender: UISlider) {
         sender.value = sender.value.rounded()
         radiusLabel.text = "\(Int(sender.value)) mi"
     }
 
-    // Set location hardcoded for now
     @IBAction func useCurrentLocationTapped(_ sender: UIButton) {
         locationField.text = "Austin, TX"
     }
 
-    // Change the picture when change picture pressed
     @IBAction func changePhotoTapped(_ sender: UIButton) {
         // Open the native photo picker
         var config = PHPickerConfiguration()
@@ -103,7 +96,6 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
         present(picker, animated: true)
     }
 
-    // On save, populate changed attributes in backend
     @IBAction func saveTapped(_ sender: UIButton) {
         view.endEditing(true)
         guard let user = Auth.auth().currentUser else {
