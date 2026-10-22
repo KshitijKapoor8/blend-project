@@ -90,7 +90,7 @@
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="68p-Yn-vhz">
                                                 <rect key="frame" x="0.0" y="206.66666666666674" width="353" height="64.333333333333258"/>
                                                 <subviews>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email or username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vQU-8H-hUQ">
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vQU-8H-hUQ">
                                                         <rect key="frame" x="0.0" y="0.0" width="353" height="14.333333333333334"/>
                                                         <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="12"/>
                                                         <color key="textColor" name="Ink"/>
@@ -375,6 +375,38 @@
                                                             </textField>
                                                         </subviews>
                                                     </stackView>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="eMs-tK-v01">
+                                                        <rect key="frame" x="0.0" y="78.333333333333314" width="353" height="64.333333333333314"/>
+                                                        <subviews>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eMl-lB-v02">
+                                                                <rect key="frame" x="0.0" y="0.0" width="353" height="14.333333333333334"/>
+                                                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="12"/>
+                                                                <color key="textColor" name="Ink"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="you@example.com" minimumFontSize="14" translatesAutoresizingMaskIntoConstraints="NO" id="eMf-tF-v03" customClass="PaddedTextField" customModule="blend_project" customModuleProvider="target">
+                                                                <rect key="frame" x="0.0" y="20.333333333333314" width="353" height="44"/>
+                                                                <color key="backgroundColor" name="Card"/>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="height" constant="44" id="eMh-cN-v04"/>
+                                                                </constraints>
+                                                                <color key="textColor" name="Ink"/>
+                                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                <textInputTraits key="textInputTraits" autocapitalizationType="none" autocorrectionType="no" keyboardType="emailAddress" textContentType="email"/>
+                                                                <userDefinedRuntimeAttributes>
+                                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                                                        <real key="value" value="8"/>
+                                                                    </userDefinedRuntimeAttribute>
+                                                                    <userDefinedRuntimeAttribute type="number" keyPath="borderWidth">
+                                                                        <real key="value" value="1"/>
+                                                                    </userDefinedRuntimeAttribute>
+                                                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                                                        <color key="value" name="Line"/>
+                                                                    </userDefinedRuntimeAttribute>
+                                                                </userDefinedRuntimeAttributes>
+                                                            </textField>
+                                                        </subviews>
+                                                    </stackView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="hPn-Yc-ceh">
                                                         <rect key="frame" x="0.0" y="156.66666666666663" width="353" height="64.333333333333314"/>
                                                         <subviews>
@@ -550,6 +582,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="emailField" destination="eMf-tF-v03" id="eMo-uT-v05"/>
                         <outlet property="confirmPasswordField" destination="NAa-rf-Ldv" id="naq-6n-nzN"/>
                         <outlet property="nameField" destination="UoN-Wz-vky" id="GDm-Cd-6s4"/>
                         <outlet property="passwordField" destination="gTG-u7-mhm" id="A3V-Db-Nxc"/>
@@ -1044,6 +1077,9 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="nameLabel" destination="7TS-0l-65I" id="pNm-oT-v06"/>
+                        <outlet property="usernameLabel" destination="HgE-P0-ilT" id="pUn-oT-v07"/>
+                        <outlet property="shopsCountLabel" destination="E5e-b1-tPo" id="pSc-oT-v08"/>
                         <outlet property="bioLabel" destination="VRE-e1-EHe" id="ovh-BK-SpZ"/>
                         <outlet property="profileImageView" destination="h8i-Rw-Wur" id="A1c-DV-xIf"/>
                     </connections>
