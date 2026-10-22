@@ -15,6 +15,7 @@ extension UIColor {
     static let blendMuted = UIColor(named: "Muted")!
     static let blendLatte = UIColor(named: "Latte")!
     static let blendMocha = UIColor(named: "Mocha")!
+    static let blendDanger = UIColor(named: "Danger")!
 }
 
 // MARK: - Storyboard-inspectable styling
