@@ -562,17 +562,15 @@
             </objects>
             <point key="canvasLocation" x="1138" y="972"/>
         </scene>
-        <!--Blend Navigation Controller-->
+        <!--Main Tab Bar Controller-->
         <scene sceneID="nfT-LL-dGn">
             <objects>
-                <navigationController navigationBarHidden="YES" id="6TU-fu-Z4Y" customClass="BlendNavigationController" customModule="blend_project" customModuleProvider="target" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Jj3-wl-dhO">
+                <tabBarController id="6TU-fu-Z4Y" customClass="MainTabBarController" customModule="blend_project" customModuleProvider="target" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" id="Jj3-wl-dhO">
+                        <rect key="frame" x="0.0" y="793" width="393" height="59"/>
                         <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <connections>
-                        <segue destination="DnD-9u-ktK" kind="relationship" relationship="rootViewController" id="624-Ol-DHX"/>
-                    </connections>
-                </navigationController>
+                    </tabBar>
+                </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ok4-OF-jGE" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1030" y="125"/>
