@@ -15,7 +15,7 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
     @IBOutlet weak var locationField: UITextField!
     @IBOutlet weak var radiusSlider: UISlider!
     @IBOutlet weak var radiusLabel: UILabel!
-    
+
     // Connect this to the new UIImageView you add over the "AK" box
     @IBOutlet weak var profileImageView: UIImageView!
 
@@ -28,20 +28,12 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
         super.viewDidLoad()
         bioTextView.delegate = self
         bioTextView.textContainerInset = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        
+
         updateBioCount()
         radiusChanged(radiusSlider)
-        
-        if Auth.auth().currentUser == nil {
-            Auth.auth().signIn(withEmail: "korny@gmail.com", password: "lalala") { [weak self] _, error in
-                if let error = error { print("Sign in error:", error) }
-                self?.loadSettings()
-            }
-        } else {
-            loadSettings()
-        }
+        loadSettings()
     }
-    
+
     // Get the attributes from backend and show in settings
     private func loadSettings() {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -53,7 +45,7 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
             self.bioTextView.text = data["bio"] as? String ?? ""
             self.locationField.text = data["locationName"] as? String ?? ""
             self.radiusSlider.value = (data["radiusMiles"] as? NSNumber)?.floatValue ?? 5
-            
+
             // Load existing profile image
             if let photoURLString = data["photoURL"] as? String,
                !photoURLString.isEmpty,
@@ -66,7 +58,7 @@ class SettingsViewController: UIViewController, UITextViewDelegate {
                     }
                 }.resume()
             }
-            
+
             self.updateBioCount()
             self.radiusChanged(self.radiusSlider)
         }
