@@ -6,6 +6,9 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
     private let searchBar = UISearchBar()
     private let statusLabel = UILabel()
     private let tableView = UITableView(frame: .zero, style: .plain)
+    private let resultMode = UISegmentedControl(items: ["List", "Map"])
+    private let map = CafeMapView(frame: .zero)
+    private let recenterButton = UIButton(type: .system)
     private let retryButton = UIButton(type: .system)
     private let service = CafeSearchService()
     private var area: CafeSearchArea?
@@ -56,7 +59,30 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         retryButton.tintColor = .blendEspresso
         retryButton.addTarget(self, action: #selector(loadCafes), for: .touchUpInside)
         retryButton.isHidden = true
-        let stack = UIStackView(arrangedSubviews: [header, searchBar, nearLabel, statusLabel, retryButton, tableView])
+        resultMode.selectedSegmentIndex = 0
+        resultMode.accessibilityLabel = "Coffee shop results view"
+        resultMode.addTarget(self, action: #selector(changeResultMode), for: .valueChanged)
+        resultMode.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        recenterButton.setTitle("Recenter search area", for: .normal)
+        recenterButton.tintColor = .blendEspresso
+        recenterButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        recenterButton.addTarget(self, action: #selector(recenterMap), for: .touchUpInside)
+        map.cornerRadius = 10
+        map.clipsToBounds = true
+        map.accessibilityIdentifier = "coffeeShopMap"
+        map.onShowCafe = { [weak self] cafe in self?.showDetails(for: cafe) }
+        let results = UIView()
+        for child in [tableView, map] {
+            child.translatesAutoresizingMaskIntoConstraints = false
+            results.addSubview(child)
+            NSLayoutConstraint.activate([
+                child.topAnchor.constraint(equalTo: results.topAnchor),
+                child.bottomAnchor.constraint(equalTo: results.bottomAnchor),
+                child.leadingAnchor.constraint(equalTo: results.leadingAnchor),
+                child.trailingAnchor.constraint(equalTo: results.trailingAnchor),
+            ])
+        }
+        let stack = UIStackView(arrangedSubviews: [header, searchBar, resultMode, nearLabel, statusLabel, retryButton, recenterButton, results])
         stack.axis = .vertical
         stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -76,7 +102,11 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cafe")
         restoreArea()
         updateLocationButton()
-        if area != nil { loadCafes() }
+        changeResultMode()
+        if let area {
+            map.setArea(area)
+            loadCafes()
+        }
         else { statusLabel.text = "Choose a location and radius to discover nearby coffee shops." }
     }
 
@@ -88,6 +118,8 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
             self.area = area
             self.saveArea(area)
             self.updateLocationButton()
+            self.changeResultMode()
+            self.map.setArea(area)
             self.loadCafes()
         }
         present(UINavigationController(rootViewController: picker), animated: true)
@@ -98,6 +130,20 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         locationButton.accessibilityLabel = "Location and radius: \(area?.summary ?? "Not selected")"
     }
 
+    @objc private func changeResultMode() {
+        view.endEditing(true)
+        let showMap = resultMode.selectedSegmentIndex == 1 && area != nil
+        tableView.isHidden = showMap
+        map.isHidden = !showMap
+        recenterButton.isHidden = !showMap
+        if showMap {
+            view.layoutIfNeeded()
+            map.recenter(animated: false)
+        }
+    }
+
+    @objc private func recenterMap() { map.recenter() }
+
     @objc private func loadCafes() {
         guard let area else { return }
         task?.cancel()
@@ -105,7 +151,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         let id = UUID()
         requestID = id
         cafes = []
-        tableView.reloadData()
+        updateResultViews()
         statusLabel.text = "Finding coffee shops within \(area.radiusMiles.formatted()) miles…"
         retryButton.isHidden = true
         task = Task { [weak self] in
@@ -132,7 +178,12 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         } else {
             statusLabel.text = "\(count) coffee \(count == 1 ? "shop" : "shops") · nearest first"
         }
+        updateResultViews()
+    }
+
+    private func updateResultViews() {
         tableView.reloadData()
+        map.showCafes(visibleCafes)
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -149,7 +200,8 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cafe", for: indexPath)
         var content = cell.defaultContentConfiguration()
         content.text = cafe.mapItem.name ?? "Coffee shop"
-        content.secondaryText = "\(cafe.distanceText) · \(cafe.mapItem.address?.fullAddress ?? "")"
+        content.secondaryText = [cafe.distanceText, cafe.mapItem.address?.fullAddress]
+            .compactMap { $0 }.joined(separator: " · ")
         content.image = UIImage(systemName: "cup.and.saucer.fill")
         content.imageProperties.tintColor = .blendMocha
         content.textProperties.color = .blendInk
@@ -163,7 +215,24 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        visibleCafes[indexPath.row].mapItem.openInMaps()
+        showDetails(for: visibleCafes[indexPath.row])
+    }
+
+    private func showDetails(for cafe: NearbyCafe) {
+        view.endEditing(true)
+        let item = cafe.mapItem
+        let details = [cafe.distanceText, item.address?.fullAddress].compactMap { $0 }.joined(separator: "\n")
+        let alert = UIAlertController(title: item.name ?? "Coffee shop", message: details, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Open in Apple Maps", style: .default) { [weak self] _ in
+            if !item.openInMaps() { self?.showMessage("Couldn't open Apple Maps") }
+        })
+        alert.addAction(UIAlertAction(title: "Walking directions", style: .default) { [weak self] _ in
+            if !item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking]) {
+                self?.showMessage("Couldn't open directions")
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
+        present(alert, animated: true)
     }
 
     private func saveArea(_ area: CafeSearchArea) {

@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function directoryMatchesProfile(uid, data) {
+      let profile = get(/databases/$(database)/documents/users/$(uid)).data;
+      return data.keys().hasOnly(['name', 'username', 'usernameLower'])
+        && data.name is string && data.name.size() > 0
+        && data.username is string && data.username.size() > 0
+        && data.usernameLower is string && data.usernameLower.size() > 0
+        && data.name == profile.name
+        && data.username == profile.username
+        && data.usernameLower == profile.usernameLower;
+    }
+
+    match /friendDirectory/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 30;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && directoryMatchesProfile(uid, request.resource.data);
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    function participant(data) {
+      return signedIn()
+        && (data.sender == request.auth.uid || data.recipient == request.auth.uid);
+    }
+
+    function matchesDirectory(uid, shared) {
+      let directory = get(/databases/$(database)/documents/friendDirectory/$(uid)).data;
+      return shared is map && shared.keys().hasOnly(['name', 'username'])
+        && shared.name == directory.name && shared.username == directory.username;
+    }
+
+    function validNewConnection(id, data) {
+      return data.keys().hasOnly(['sender', 'recipient', 'status', 'createdAt', 'senderProfile', 'recipientProfile'])
+        && data.sender == request.auth.uid
+        && data.sender.matches('[A-Za-z0-9_-]+')
+        && data.recipient is string && data.recipient.matches('[A-Za-z0-9_-]+')
+        && data.sender != data.recipient
+        && id == (data.sender < data.recipient
+          ? data.sender + ':' + data.recipient
+          : data.recipient + ':' + data.sender)
+        && data.status == 'pending' && data.createdAt == request.time
+        && matchesDirectory(data.sender, data.senderProfile)
+        && matchesDirectory(data.recipient, data.recipientProfile);
+    }
+
+    match /friendConnections/{id} {
+      allow get, list, delete: if participant(resource.data);
+      allow create: if signedIn() && validNewConnection(id, request.resource.data);
+      allow update: if signedIn() && resource.data.recipient == request.auth.uid
+        && resource.data.status == 'pending' && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+    }
+  }
+}
