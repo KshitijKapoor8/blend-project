@@ -1,8 +1,3 @@
-//
-//  RateViewController.swift
-//  blend-project
-//
-
 import PhotosUI
 import UIKit
 import FirebaseAuth
@@ -78,6 +73,9 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
             showMessage("Not signed in", "Please log in and try again.")
             return
         }
+        let storageBucket = Storage.storage().reference().bucket
+        print("[RateVC] UID:", uid)
+        print("[RateVC] Storage bucket:", storageBucket)
 
         sender.isEnabled = false
         // One rating per user per shop; posting again updates it.
@@ -97,12 +95,31 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
             return
         }
 
+        print("[RateVC] Preparing to upload rating photo…")
         let photoRef = storage.reference().child("rating_images/\(ratingRef.documentID).jpg")
+        print("[RateVC] Upload path:", photoRef.fullPath)
         photoRef.putData(imageData, metadata: nil) { [weak self] _, error in
-            if let error = error { return finish(error) }
+            guard let self = self else { return }
+            if let error = error {
+                print("[RateVC] Upload error:", error.localizedDescription)
+                return finish(error)
+            }
+            print("[RateVC] Upload succeeded. Fetching downloadURL…")
             photoRef.downloadURL { url, error in
-                guard let url = url else { return finish(error) }
-                self?.saveRating(ratingRef, uid: uid, photoURL: url.absoluteString, completion: finish)
+                if let error = error {
+                    // Likely a read permission issue. Log and proceed without photo instead of blocking the rating.
+                    print("[RateVC] downloadURL error:", error.localizedDescription)
+                    print("[RateVC] Proceeding to save rating without photoURL due to downloadURL failure.")
+                    self.saveRating(ratingRef, uid: uid, photoURL: nil, completion: finish)
+                    return
+                }
+                guard let url = url else {
+                    print("[RateVC] downloadURL returned nil URL; proceeding without photoURL.")
+                    self.saveRating(ratingRef, uid: uid, photoURL: nil, completion: finish)
+                    return
+                }
+                print("[RateVC] Got downloadURL:", url.absoluteString)
+                self.saveRating(ratingRef, uid: uid, photoURL: url.absoluteString, completion: finish)
             }
         }
     }
