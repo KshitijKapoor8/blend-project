@@ -7,7 +7,7 @@ import { test } from 'node:test';
 test('friend discovery and connections enforce the beta privacy and request flow', async () => {
   const env = await initializeTestEnvironment({
     projectId: 'demo-blend-friends',
-    firestore: { rules: readFileSync(new URL('./friends.rules', import.meta.url), 'utf8') },
+    firestore: { rules: readFileSync(new URL('./firestore.rules', import.meta.url), 'utf8') },
   });
 
   try {

@@ -5,6 +5,48 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Users: each user can read/update their own profile (allows incrementing shopsVisitedCount)
+    match /users/{userId} {
+      allow read, update, delete: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId;
+    }
+
+    // Usernames: one document per lowercased username, so sign-up can check uniqueness
+    // without reading other users' profiles. Existing names can't be overwritten (that would be an update).
+    match /usernames/{name} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && name.matches('^[a-z0-9_]{1,30}$')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.usernameLower == name;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Ratings: document id is "<uid>_<shopId>"
+    function acceptedFriend(other) {
+      let me = request.auth.uid;
+      let id = me < other ? me + ':' + other : other + ':' + me;
+      return get(/databases/$(database)/documents/friendConnections/$(id)).data.status == 'accepted';
+    }
+
+    match /ratings/{ratingId} {
+      // Owner can read, update and delete. The id check covers reading a rating that doesn't exist yet.
+      allow get, update, delete: if signedIn() &&
+        (resource.data.userId == request.auth.uid || ratingId.matches('^' + request.auth.uid + '_.*$'));
+
+      // Friends can read each other's ratings (Feed).
+      allow get: if signedIn() && acceptedFriend(resource.data.userId);
+
+      // Lists only of your own ratings (Profile) or accepted friends' ratings (Feed).
+      allow list: if signedIn() &&
+        (resource.data.userId == request.auth.uid || acceptedFriend(resource.data.userId));
+
+      // Allow creation if the user sets their own userId
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Friends: opt-in directory and connections
     function directoryMatchesProfile(uid, data) {
       let profile = get(/databases/$(database)/documents/users/$(uid)).data;
       return data.keys().hasOnly(['name', 'username', 'usernameLower'])
@@ -55,6 +97,11 @@ service cloud.firestore {
       allow update: if signedIn() && resource.data.recipient == request.auth.uid
         && resource.data.status == 'pending' && request.resource.data.status == 'accepted'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+    }
+
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
