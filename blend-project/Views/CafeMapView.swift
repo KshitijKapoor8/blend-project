@@ -60,6 +60,8 @@ final class CafeMapView: MKMapView, MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: any MKAnnotation) -> MKAnnotationView? {
         guard annotation is CafePin else { return nil }
         let marker = dequeueReusableAnnotationView(withIdentifier: "CafePin", for: annotation) as! MKMarkerAnnotationView
+        // Keep nearby pins visible when the full search radius is on screen.
+        marker.displayPriority = .required
         marker.markerTintColor = .blendEspresso
         marker.glyphImage = UIImage(systemName: "cup.and.saucer.fill")
         marker.canShowCallout = true
