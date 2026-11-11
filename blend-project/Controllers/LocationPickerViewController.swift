@@ -15,7 +15,10 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
     private var search: MKLocalSearch?
     private var task: Task<Void, Never>?
     private let db = Firestore.firestore()
+<<<<<<< HEAD
     private let defaultRadiusMiles: Double = 3
+=======
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
 
     init(area: CafeSearchArea?) {
         currentArea = area
@@ -52,9 +55,13 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         searchButton.cornerRadius = 8
         searchButton.heightAnchor.constraint(equalToConstant: 48).isActive = true
         searchButton.addTarget(self, action: #selector(findLocation), for: .touchUpInside)
+<<<<<<< HEAD
         statusLabel.text = currentArea == nil
             ? "Enter a location, then choose a result below. Radius will use your profile setting."
             : "Change the location, or re-apply your profile radius around the current one."
+=======
+        statusLabel.text = "Enter a location, then choose a result below. Radius will use your profile setting."
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
         statusLabel.font = .preferredFont(forTextStyle: .subheadline)
         statusLabel.textColor = .blendMuted
         statusLabel.numberOfLines = 0
@@ -113,6 +120,7 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         places = []
         tableView.reloadData()
         searchButton.isEnabled = true
+<<<<<<< HEAD
         updateSearchButton()
         statusLabel.text = currentArea?.name == locationQuery
             ? "Re-apply your profile radius around this location."
@@ -133,6 +141,13 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
             return
         }
 
+=======
+        statusLabel.text = "Find the location, then choose a result below."
+    }
+
+    @objc private func findLocation() {
+        let query = (locationField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
         guard !query.isEmpty else {
             statusLabel.text = "Enter a city, neighborhood, or address."
             return
@@ -190,6 +205,7 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let place = places[indexPath.row]
+<<<<<<< HEAD
         let coordinate = place.location.coordinate
         let name = place.name ?? locationField.text ?? "Selected location"
         loadProfileRadius { [weak self] radius in
@@ -197,5 +213,29 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
             self.onSelect?(CafeSearchArea(name: name, coordinate: coordinate, radiusMiles: radius))
             self.dismiss(animated: true)
         }
+=======
+        // Fetch the user's radius from profile and use it
+        let useAreaWithRadius: (Double) -> Void = { [weak self] radius in
+            guard let self = self else { return }
+            let clCoord = place.location.coordinate
+            self.onSelect?(CafeSearchArea(name: place.name ?? self.locationField.text ?? "Selected location",
+                                          coordinate: clCoord,
+                                          radiusMiles: radius))
+            self.dismiss(animated: true)
+        }
+        // Default to 3 if not available, but try to load from Firestore first
+        if let uid = Auth.auth().currentUser?.uid {
+            Firestore.firestore().collection("users").document(uid).getDocument { snap, _ in
+                if let radiusNum = (snap?.data()? ["radiusMiles"] as? NSNumber)?.doubleValue,
+                   radiusNum.isFinite, (0.5...50).contains(radiusNum) {
+                    useAreaWithRadius(radiusNum)
+                } else {
+                    useAreaWithRadius(3)
+                }
+            }
+        } else {
+            useAreaWithRadius(3)
+        }
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
     }
 }

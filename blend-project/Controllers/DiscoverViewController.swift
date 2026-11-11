@@ -108,12 +108,24 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         restoreArea()
         fetchProfileRadiusIfNeeded()
         updateLocationButton()
+<<<<<<< HEAD
         changeResultMode()
         if let area {
             map.setArea(area)
             loadCafes()
         } else {
             showNoAreaState()
+=======
+        if area != nil { loadCafes() }
+        else {
+            if let radius = profileRadiusMiles {
+                statusLabel.text = "Choose a location to discover coffee shops within \(radius.formatted()) miles."
+                locationButton.setTitle(" Choose location · \(radius.formatted()) mi", for: .normal)
+                locationButton.accessibilityLabel = "Location and radius: Not selected. Radius \(radius.formatted()) miles from your profile."
+            } else {
+                statusLabel.text = "Choose a location to discover nearby coffee shops."
+            }
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
         }
     }
 
@@ -133,6 +145,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
     }
 
     private func updateLocationButton() {
+<<<<<<< HEAD
         if let area {
             locationButton.setTitle(" " + area.name, for: .normal)
             locationButton.accessibilityLabel = "Location: \(area.name)"
@@ -143,6 +156,11 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
             locationButton.setTitle(" Choose location", for: .normal)
             locationButton.accessibilityLabel = "Location: Choose location"
         }
+=======
+        let title = area?.name ?? "Choose location"
+        locationButton.setTitle(" " + title, for: .normal)
+        locationButton.accessibilityLabel = "Location: \(title)"
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
     }
 
     /// Status text shown before the user has picked a location.
@@ -281,6 +299,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         // Only fetch if no saved area and a user is signed in
         guard area == nil, let uid = Auth.auth().currentUser?.uid else { return }
         db.collection("users").document(uid).getDocument { [weak self] snap, _ in
+<<<<<<< HEAD
             guard let self, self.area == nil else { return }
             if let radius = (snap?.data()?["radiusMiles"] as? NSNumber)?.doubleValue,
                radius.isFinite, (0.5...50).contains(radius) {
@@ -288,6 +307,18 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
                 // Reflect the radius hint in the UI if no area has been chosen yet
                 self.updateLocationButton()
                 self.showNoAreaState()
+=======
+            guard let self = self, self.area == nil else { return }
+            if let radiusNum = (snap?.data()? ["radiusMiles"] as? NSNumber)?.doubleValue,
+               radiusNum.isFinite, (0.5...50).contains(radiusNum) {
+                self.profileRadiusMiles = radiusNum
+                // Reflect the radius hint in the UI if no area has been chosen yet
+                if self.area == nil {
+                    self.statusLabel.text = "Choose a location to discover coffee shops within \(radiusNum.formatted()) miles."
+                    self.locationButton.setTitle(" Choose location · \(radiusNum.formatted()) mi", for: .normal)
+                    self.locationButton.accessibilityLabel = "Location and radius: Not selected. Radius \(radiusNum.formatted()) miles from your profile."
+                }
+>>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
             }
         }
     }
