@@ -56,12 +56,21 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         searchButton.heightAnchor.constraint(equalToConstant: 48).isActive = true
         searchButton.addTarget(self, action: #selector(findLocation), for: .touchUpInside)
 <<<<<<< HEAD
+<<<<<<< HEAD
         statusLabel.text = currentArea == nil
             ? "Enter a location, then choose a result below. Radius will use your profile setting."
             : "Change the location, or re-apply your profile radius around the current one."
 =======
         statusLabel.text = "Enter a location, then choose a result below. Radius will use your profile setting."
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
+=======
+        statusLabel.text = "Enter a location, then choose a result below. Radius will use your profile setting."
+=======
+        statusLabel.text = currentArea == nil
+            ? "Enter a location, then choose a result below."
+            : "Change the location or apply a new radius."
+>>>>>>> a5f627d (Add beta Friends requests and Discover map)
+>>>>>>> c9c26a9 (resolved)
         statusLabel.font = .preferredFont(forTextStyle: .subheadline)
         statusLabel.textColor = .blendMuted
         statusLabel.numberOfLines = 0
@@ -97,6 +106,7 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         searchButton.setTitle(currentArea?.name == locationQuery ? "Apply radius" : "Find location", for: .normal)
     }
 
+<<<<<<< HEAD
     /// Loads the radius saved in the user's profile, falling back to the default.
     private func loadProfileRadius(completion: @escaping (Double) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -114,12 +124,15 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         }
     }
 
+=======
+>>>>>>> c9c26a9 (resolved)
     @objc private func locationChanged() {
         task?.cancel()
         search?.cancel()
         places = []
         tableView.reloadData()
         searchButton.isEnabled = true
+<<<<<<< HEAD
 <<<<<<< HEAD
         updateSearchButton()
         statusLabel.text = currentArea?.name == locationQuery
@@ -143,11 +156,30 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
 
 =======
         statusLabel.text = "Find the location, then choose a result below."
+=======
+        updateSearchButton()
+        statusLabel.text = currentArea?.name == locationQuery
+            ? "Apply a new radius around this location."
+            : "Find the location, then choose a result below."
+>>>>>>> c9c26a9 (resolved)
     }
 
     @objc private func findLocation() {
+<<<<<<< HEAD
         let query = (locationField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+<<<<<<< HEAD
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
+=======
+=======
+        guard let radius = radius() else { return }
+        let query = locationQuery
+        if let area = currentArea, query == area.name {
+            onSelect?(CafeSearchArea(name: area.name, coordinate: area.coordinate, radiusMiles: radius))
+            dismiss(animated: true)
+            return
+        }
+>>>>>>> a5f627d (Add beta Friends requests and Discover map)
+>>>>>>> c9c26a9 (resolved)
         guard !query.isEmpty else {
             statusLabel.text = "Enter a city, neighborhood, or address."
             return

@@ -109,6 +109,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         fetchProfileRadiusIfNeeded()
         updateLocationButton()
 <<<<<<< HEAD
+<<<<<<< HEAD
         changeResultMode()
         if let area {
             map.setArea(area)
@@ -116,6 +117,8 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         } else {
             showNoAreaState()
 =======
+=======
+>>>>>>> c9c26a9 (resolved)
         if area != nil { loadCafes() }
         else {
             if let radius = profileRadiusMiles {
@@ -127,6 +130,14 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
             }
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
         }
+=======
+        changeResultMode()
+        if let area {
+            map.setArea(area)
+            loadCafes()
+        }
+        else { statusLabel.text = "Choose a location and radius to discover nearby coffee shops." }
+>>>>>>> a5f627d (Add beta Friends requests and Discover map)
     }
 
     @objc private func editLocation() {
@@ -163,6 +174,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
     }
 
+<<<<<<< HEAD
     /// Status text shown before the user has picked a location.
     private func showNoAreaState() {
         if let radius = profileRadiusMiles {
@@ -172,6 +184,8 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         }
     }
 
+=======
+>>>>>>> c9c26a9 (resolved)
     @objc private func changeResultMode() {
         view.endEditing(true)
         let showMap = resultMode.selectedSegmentIndex == 1 && area != nil
