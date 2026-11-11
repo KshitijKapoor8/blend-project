@@ -1,4 +1,5 @@
 import MapKit
+import UIKit
 
 final class CafeMapView: MKMapView, MKMapViewDelegate {
     private final class CafePin: NSObject, MKAnnotation {
@@ -24,6 +25,55 @@ final class CafeMapView: MKMapView, MKMapViewDelegate {
         register(MKMarkerAnnotationView.self, forAnnotationViewWithReuseIdentifier: "CafePin")
         pointOfInterestFilter = .excludingAll
         showsCompass = true
+        isZoomEnabled = true
+        isScrollEnabled = true
+        addZoomControls()
+    }
+
+    /// On-map + / − buttons, since iOS maps have no built-in zoom control and
+    /// pinching isn't always practical (Simulator, one-handed use, accessibility).
+    private func addZoomControls() {
+        let zoomIn = zoomButton(symbol: "plus", label: "Zoom in", action: #selector(zoomInTapped))
+        let zoomOut = zoomButton(symbol: "minus", label: "Zoom out", action: #selector(zoomOutTapped))
+        let controls = UIStackView(arrangedSubviews: [zoomIn, zoomOut])
+        controls.axis = .vertical
+        controls.spacing = 8
+        controls.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(controls)
+        NSLayoutConstraint.activate([
+            controls.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            controls.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24)
+        ])
+    }
+
+    private func zoomButton(symbol: String, label: String, action: Selector) -> UIButton {
+        var config = UIButton.Configuration.filled()
+        config.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(weight: .semibold))
+        config.baseBackgroundColor = .blendCard
+        config.baseForegroundColor = .blendEspresso
+        config.cornerStyle = .medium
+        let button = UIButton(configuration: config)
+        button.accessibilityLabel = label
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.15
+        button.layer.shadowRadius = 3
+        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+        button.addTarget(self, action: action, for: .touchUpInside)
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 44),
+            button.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        return button
+    }
+
+    @objc private func zoomInTapped() { zoom(by: 0.5) }
+    @objc private func zoomOutTapped() { zoom(by: 2) }
+
+    private func zoom(by factor: Double) {
+        var span = region.span
+        span.latitudeDelta = min(max(span.latitudeDelta * factor, 0.0005), 90)
+        span.longitudeDelta = min(max(span.longitudeDelta * factor, 0.0005), 180)
+        setRegion(MKCoordinateRegion(center: region.center, span: span), animated: true)
     }
 
     required init?(coder: NSCoder) { fatalError("Use init(frame:)") }
@@ -60,6 +110,8 @@ final class CafeMapView: MKMapView, MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: any MKAnnotation) -> MKAnnotationView? {
         guard annotation is CafePin else { return nil }
         let marker = dequeueReusableAnnotationView(withIdentifier: "CafePin", for: annotation) as! MKMarkerAnnotationView
+        // Keep nearby pins visible when the full search radius is on screen.
+        marker.displayPriority = .required
         marker.markerTintColor = .blendEspresso
         marker.glyphImage = UIImage(systemName: "cup.and.saucer.fill")
         marker.canShowCallout = true
