@@ -31,6 +31,10 @@ class SignUpViewController: UIViewController {
             showMessage("Missing info", "Name, username, and email are required.")
             return
         }
+        guard let usernameKey = UsernameRegistry.key(for: username) else {
+            showMessage("Invalid username", "Use up to 30 letters, numbers, or underscores.")
+            return
+        }
         guard password.count >= 8 else {
             showMessage("Password too short", "Use at least 8 characters.")
             return
@@ -49,13 +53,14 @@ class SignUpViewController: UIViewController {
                 return
             }
 
-            // Usernames must be unique
-            self.db.collection("users").whereField("usernameLower", isEqualTo: username.lowercased()).limit(to: 1).getDocuments { snapshot, error in
+            // Usernames must be unique: check the registry, then claim it alongside the profile.
+            let claim = UsernameRegistry.document(usernameKey)
+            claim.getDocument { snapshot, error in
                 if let error = error {
                     self.rollBack(user, sender, "Couldn't create account", error.localizedDescription)
                     return
                 }
-                if snapshot?.isEmpty == false {
+                if snapshot?.exists == true {
                     self.rollBack(user, sender, "Username taken", "@\(username) is already in use. Try another.")
                     return
                 }
@@ -63,7 +68,7 @@ class SignUpViewController: UIViewController {
                 let profile: [String: Any] = [
                     "name": name,
                     "username": username,
-                    "usernameLower": username.lowercased(),
+                    "usernameLower": usernameKey,
                     "email": email,
                     "phone": phone,
                     "bio": "",
@@ -71,7 +76,11 @@ class SignUpViewController: UIViewController {
                     "shopsVisitedCount": 0,
                     "createdAt": FieldValue.serverTimestamp()
                 ]
-                self.db.collection("users").document(user.uid).setData(profile) { error in
+                // Both writes succeed or neither does. If someone claimed the name a moment ago, the rules reject it.
+                let batch = self.db.batch()
+                batch.setData(profile, forDocument: self.db.collection("users").document(user.uid))
+                batch.setData(["uid": user.uid], forDocument: claim)
+                batch.commit { error in
                     if let error = error {
                         self.rollBack(user, sender, "Couldn't save profile", error.localizedDescription)
                         return
