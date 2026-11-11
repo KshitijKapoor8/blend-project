@@ -16,9 +16,15 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
     private var task: Task<Void, Never>?
     private let db = Firestore.firestore()
 <<<<<<< HEAD
+<<<<<<< HEAD
     private let defaultRadiusMiles: Double = 3
 =======
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
+=======
+=======
+    private let defaultRadiusMiles: Double = 3
+>>>>>>> 98fd9d9 (resolved conflicted files)
+>>>>>>> d246018 (resolved conflicted files)
 
     init(area: CafeSearchArea?) {
         currentArea = area
@@ -67,10 +73,18 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         statusLabel.text = "Enter a location, then choose a result below. Radius will use your profile setting."
 =======
         statusLabel.text = currentArea == nil
+<<<<<<< HEAD
             ? "Enter a location, then choose a result below."
             : "Change the location or apply a new radius."
 >>>>>>> a5f627d (Add beta Friends requests and Discover map)
+<<<<<<< HEAD
 >>>>>>> c9c26a9 (resolved)
+=======
+=======
+            ? "Enter a location, then choose a result below. Radius will use your profile setting."
+            : "Change the location, or re-apply your profile radius around the current one."
+>>>>>>> 98fd9d9 (resolved conflicted files)
+>>>>>>> d246018 (resolved conflicted files)
         statusLabel.font = .preferredFont(forTextStyle: .subheadline)
         statusLabel.textColor = .blendMuted
         statusLabel.numberOfLines = 0
@@ -107,6 +121,9 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d246018 (resolved conflicted files)
     /// Loads the radius saved in the user's profile, falling back to the default.
     private func loadProfileRadius(completion: @escaping (Double) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -124,8 +141,11 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         }
     }
 
+<<<<<<< HEAD
 =======
 >>>>>>> c9c26a9 (resolved)
+=======
+>>>>>>> d246018 (resolved conflicted files)
     @objc private func locationChanged() {
         task?.cancel()
         search?.cancel()
@@ -159,12 +179,13 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
 =======
         updateSearchButton()
         statusLabel.text = currentArea?.name == locationQuery
-            ? "Apply a new radius around this location."
+            ? "Re-apply your profile radius around this location."
             : "Find the location, then choose a result below."
 >>>>>>> c9c26a9 (resolved)
     }
 
     @objc private func findLocation() {
+<<<<<<< HEAD
 <<<<<<< HEAD
         let query = (locationField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 <<<<<<< HEAD
@@ -172,14 +193,29 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
 =======
 =======
         guard let radius = radius() else { return }
+=======
+>>>>>>> 98fd9d9 (resolved conflicted files)
         let query = locationQuery
+
+        // Same location as before: just re-apply the radius from the profile
         if let area = currentArea, query == area.name {
-            onSelect?(CafeSearchArea(name: area.name, coordinate: area.coordinate, radiusMiles: radius))
-            dismiss(animated: true)
+            searchButton.isEnabled = false
+            loadProfileRadius { [weak self] radius in
+                guard let self else { return }
+                self.onSelect?(CafeSearchArea(name: area.name, coordinate: area.coordinate, radiusMiles: radius))
+                self.dismiss(animated: true)
+            }
             return
         }
+<<<<<<< HEAD
 >>>>>>> a5f627d (Add beta Friends requests and Discover map)
+<<<<<<< HEAD
 >>>>>>> c9c26a9 (resolved)
+=======
+=======
+
+>>>>>>> 98fd9d9 (resolved conflicted files)
+>>>>>>> d246018 (resolved conflicted files)
         guard !query.isEmpty else {
             statusLabel.text = "Enter a city, neighborhood, or address."
             return
@@ -238,6 +274,7 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         tableView.deselectRow(at: indexPath, animated: true)
         let place = places[indexPath.row]
 <<<<<<< HEAD
+<<<<<<< HEAD
         let coordinate = place.location.coordinate
         let name = place.name ?? locationField.text ?? "Selected location"
         loadProfileRadius { [weak self] radius in
@@ -246,6 +283,8 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
             self.dismiss(animated: true)
         }
 =======
+=======
+>>>>>>> d246018 (resolved conflicted files)
         // Fetch the user's radius from profile and use it
         let useAreaWithRadius: (Double) -> Void = { [weak self] radius in
             guard let self = self else { return }
@@ -268,6 +307,18 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         } else {
             useAreaWithRadius(3)
         }
+<<<<<<< HEAD
 >>>>>>> 8bcefb4 (now uses radius stored in user profile rather than manually adjusting radius)
+=======
+=======
+        let coordinate = place.location.coordinate
+        let name = place.name ?? locationField.text ?? "Selected location"
+        loadProfileRadius { [weak self] radius in
+            guard let self else { return }
+            self.onSelect?(CafeSearchArea(name: name, coordinate: coordinate, radiusMiles: radius))
+            self.dismiss(animated: true)
+        }
+>>>>>>> 98fd9d9 (resolved conflicted files)
+>>>>>>> d246018 (resolved conflicted files)
     }
 }
