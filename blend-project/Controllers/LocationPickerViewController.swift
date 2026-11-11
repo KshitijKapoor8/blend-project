@@ -50,13 +50,15 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
             field.cornerRadius = 8
             field.heightAnchor.constraint(equalToConstant: 48).isActive = true
         }
-        searchButton.setTitle("Find location", for: .normal)
+        updateSearchButton()
         searchButton.setTitleColor(.blendCard, for: .normal)
         searchButton.backgroundColor = .blendEspresso
         searchButton.cornerRadius = 8
         searchButton.heightAnchor.constraint(equalToConstant: 48).isActive = true
         searchButton.addTarget(self, action: #selector(findLocation), for: .touchUpInside)
-        statusLabel.text = "Enter a location, then choose a result below."
+        statusLabel.text = currentArea == nil
+            ? "Enter a location, then choose a result below."
+            : "Change the location or apply a new radius."
         statusLabel.font = .preferredFont(forTextStyle: .subheadline)
         statusLabel.textColor = .blendMuted
         statusLabel.numberOfLines = 0
@@ -84,13 +86,24 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
         search?.cancel()
     }
 
+    private var locationQuery: String {
+        (locationField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func updateSearchButton() {
+        searchButton.setTitle(currentArea?.name == locationQuery ? "Apply radius" : "Find location", for: .normal)
+    }
+
     @objc private func locationChanged() {
         task?.cancel()
         search?.cancel()
         places = []
         tableView.reloadData()
         searchButton.isEnabled = true
-        statusLabel.text = "Find the location, then choose a result below."
+        updateSearchButton()
+        statusLabel.text = currentArea?.name == locationQuery
+            ? "Apply a new radius around this location."
+            : "Find the location, then choose a result below."
     }
 
     private func radius() -> Double? {
@@ -102,8 +115,13 @@ final class LocationPickerViewController: UIViewController, UITableViewDataSourc
     }
 
     @objc private func findLocation() {
-        guard radius() != nil else { return }
-        let query = (locationField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let radius = radius() else { return }
+        let query = locationQuery
+        if let area = currentArea, query == area.name {
+            onSelect?(CafeSearchArea(name: area.name, coordinate: area.coordinate, radiusMiles: radius))
+            dismiss(animated: true)
+            return
+        }
         guard !query.isEmpty else {
             statusLabel.text = "Enter a city, neighborhood, or address."
             return

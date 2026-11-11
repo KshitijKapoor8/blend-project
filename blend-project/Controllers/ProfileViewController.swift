@@ -17,8 +17,12 @@ class ProfileViewController: UIViewController {
     @IBOutlet weak var bioLabel: UILabel!
     @IBOutlet weak var shopsCountLabel: UILabel!
     @IBOutlet weak var ratingsCountLabel: UILabel!
+    @IBOutlet weak var friendsCountLabel: UILabel!
+    @IBOutlet weak var friendsCard: UIView!
     @IBOutlet weak var contentStack: UIStackView!
 
+    private let friendsButton = UIButton(type: .custom)
+    private let friendsService = FriendsService()
     private let db = Firestore.firestore()
     // Horizontal row of the user's rating cards (testing aid).
     private let ratingsRow = UIStackView()
@@ -31,6 +35,18 @@ class ProfileViewController: UIViewController {
         bioLabel.text = nil
         shopsCountLabel.text = "0"
         ratingsCountLabel.text = "0"
+        friendsCountLabel.text = "—"
+        friendsCard.accessibilityElements = [friendsButton]
+        friendsButton.accessibilityLabel = "Open Friends"
+        friendsButton.addTarget(self, action: #selector(openFriends), for: .touchUpInside)
+        friendsButton.translatesAutoresizingMaskIntoConstraints = false
+        friendsCard.addSubview(friendsButton)
+        NSLayoutConstraint.activate([
+            friendsButton.topAnchor.constraint(equalTo: friendsCard.topAnchor),
+            friendsButton.leadingAnchor.constraint(equalTo: friendsCard.leadingAnchor),
+            friendsButton.bottomAnchor.constraint(equalTo: friendsCard.bottomAnchor),
+            friendsButton.trailingAnchor.constraint(equalTo: friendsCard.trailingAnchor)
+        ])
         addRatingsSection()
     }
 
@@ -39,6 +55,25 @@ class ProfileViewController: UIViewController {
         super.viewWillAppear(animated)
         loadUserProfile()
         loadRatings()
+        loadFriendsCount()
+    }
+
+    @objc private func openFriends() {
+        (tabBarController as? MainTabBarController)?.openFriends()
+    }
+
+    private func loadFriendsCount() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        friendsCountLabel.text = "—"
+        friendsButton.accessibilityValue = nil
+        Task { [weak self] in
+            guard let self,
+                  let connections = try? await self.friendsService.connectionsForUser(uid),
+                  Auth.auth().currentUser?.uid == uid else { return }
+            let count = connections.filter { $0.status == .accepted }.count
+            self.friendsCountLabel.text = count.formatted()
+            self.friendsButton.accessibilityValue = count == 1 ? "1 friend" : "\(count) friends"
+        }
     }
 
     private func loadUserProfile() {

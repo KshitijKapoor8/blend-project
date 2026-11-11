@@ -788,13 +788,13 @@
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="Kkm-Yh-Cw8">
                                                                 <rect key="frame" x="10" y="10" width="91" height="39.333333333333336"/>
                                                                 <subviews>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="52" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uP8-Uv-8PK">
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="—" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uP8-Uv-8PK">
                                                                         <rect key="frame" x="0.0" y="0.0" width="91" height="24"/>
                                                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                                                                         <color key="textColor" name="Ink"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Friends" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H6u-gH-9Om">
+                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Friends ›" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H6u-gH-9Om">
                                                                         <rect key="frame" x="0.0" y="25.999999999999996" width="91" height="13.333333333333332"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                                                         <color key="textColor" name="Muted"/>
@@ -1080,6 +1080,8 @@
                         <outlet property="nameLabel" destination="7TS-0l-65I" id="pNm-oT-v06"/>
                         <outlet property="usernameLabel" destination="HgE-P0-ilT" id="pUn-oT-v07"/>
                         <outlet property="shopsCountLabel" destination="E5e-b1-tPo" id="pSc-oT-v08"/>
+                        <outlet property="friendsCard" destination="TAM-hm-VPg" id="AsF-Qt-P51"/>
+                        <outlet property="friendsCountLabel" destination="uP8-Uv-8PK" id="ZiW-0t-Wd4"/>
                         <outlet property="contentStack" destination="st8-pg-GsZ" id="pCs-oT-v10"/>
                         <outlet property="ratingsCountLabel" destination="L23-hz-1fP" id="pRc-oT-v11"/>
                         <outlet property="bioLabel" destination="VRE-e1-EHe" id="ovh-BK-SpZ"/>
