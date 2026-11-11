@@ -1,5 +1,7 @@
 import MapKit
 import UIKit
+import FirebaseAuth
+import FirebaseFirestore
 
 final class DiscoverViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     private let locationButton = UIButton(type: .system)
@@ -15,6 +17,9 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
     private var cafes: [NearbyCafe] = []
     private var task: Task<Void, Never>?
     private var requestID = UUID()
+
+    private let db = Firestore.firestore()
+    private var profileRadiusMiles: Double?
 
     private var visibleCafes: [NearbyCafe] {
         let query = (searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -101,13 +106,15 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         tableView.keyboardDismissMode = .onDrag
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cafe")
         restoreArea()
+        fetchProfileRadiusIfNeeded()
         updateLocationButton()
         changeResultMode()
         if let area {
             map.setArea(area)
             loadCafes()
+        } else {
+            showNoAreaState()
         }
-        else { statusLabel.text = "Choose a location and radius to discover nearby coffee shops." }
     }
 
     @objc private func editLocation() {
@@ -126,8 +133,25 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
     }
 
     private func updateLocationButton() {
-        locationButton.setTitle(" " + (area?.summary ?? "Choose location & radius"), for: .normal)
-        locationButton.accessibilityLabel = "Location and radius: \(area?.summary ?? "Not selected")"
+        if let area {
+            locationButton.setTitle(" " + area.name, for: .normal)
+            locationButton.accessibilityLabel = "Location: \(area.name)"
+        } else if let radius = profileRadiusMiles {
+            locationButton.setTitle(" Choose location · \(radius.formatted()) mi", for: .normal)
+            locationButton.accessibilityLabel = "Location and radius: Not selected. Radius \(radius.formatted()) miles from your profile."
+        } else {
+            locationButton.setTitle(" Choose location", for: .normal)
+            locationButton.accessibilityLabel = "Location: Choose location"
+        }
+    }
+
+    /// Status text shown before the user has picked a location.
+    private func showNoAreaState() {
+        if let radius = profileRadiusMiles {
+            statusLabel.text = "Choose a location to discover coffee shops within \(radius.formatted()) miles."
+        } else {
+            statusLabel.text = "Choose a location to discover nearby coffee shops."
+        }
     }
 
     @objc private func changeResultMode() {
@@ -251,5 +275,20 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         guard CLLocationCoordinate2DIsValid(coordinate) else { return }
         area = CafeSearchArea(name: name, coordinate: coordinate, radiusMiles: radius)
+    }
+
+    private func fetchProfileRadiusIfNeeded() {
+        // Only fetch if no saved area and a user is signed in
+        guard area == nil, let uid = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(uid).getDocument { [weak self] snap, _ in
+            guard let self, self.area == nil else { return }
+            if let radius = (snap?.data()?["radiusMiles"] as? NSNumber)?.doubleValue,
+               radius.isFinite, (0.5...50).contains(radius) {
+                self.profileRadiusMiles = radius
+                // Reflect the radius hint in the UI if no area has been chosen yet
+                self.updateLocationButton()
+                self.showNoAreaState()
+            }
+        }
     }
 }
