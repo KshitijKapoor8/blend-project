@@ -29,6 +29,13 @@ final class FeedService {
         return FeedItem.build(from: ratings, authors: authors)
     }
 
+    /// Adds or removes the user from a friend's rating likes. Doesn't change updatedAt, so the post keeps its place.
+    func setLiked(_ liked: Bool, ratingId: String, user: String) async throws {
+        try await db.collection("ratings").document(ratingId).updateData([
+            "likedBy": liked ? FieldValue.arrayUnion([user]) : FieldValue.arrayRemove([user])
+        ])
+    }
+
     private func rating(_ doc: QueryDocumentSnapshot) -> FeedRating? {
         let data = doc.data()
         guard let userId = data["userId"] as? String,
@@ -45,8 +52,7 @@ final class FeedService {
             categories: data["ratings"] as? [String: Int] ?? [:],
             comment: comment,
             photoURL: (data["photoURL"] as? String).flatMap(URL.init(string:)),
-            likeCount: (data["likeCount"] as? NSNumber)?.intValue ?? 0,
-            commentCount: (data["commentCount"] as? NSNumber)?.intValue ?? 0,
+            likedBy: data["likedBy"] as? [String] ?? [],
             createdAt: createdAt,
             updatedAt: updatedAt
         )

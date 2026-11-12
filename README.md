@@ -22,14 +22,14 @@
 ## Beta: Feed
 
 - **Feed:** The Feed tab lists your accepted friends' ratings, newest first. A rating with a comment or photo is a full card with the overall score, the three highest category scores, and the comment. Other ratings are one line: "tried a new spot" for a first rating (numbered by how many shops that friend has rated) or "is back at" for a shop they rated again. The button in the top right opens Friends. Pull to refresh.
-- **Likes and comments** are display only for now. Cards show `likeCount` and `commentCount` from the rating if present, and nothing writes them yet.
+- **Likes:** Tap the heart on a full card to like or unlike it. Each rating stores a `likedBy` list of user IDs, and the count is its length. Friends can add or remove only their own ID, and liking doesn't move the post in the feed.
 - **Unique usernames:** Sign-up now claims `usernames/{lowercased username}` together with the profile, because the rules don't allow searching other people's profiles. Usernames are 1–30 letters, numbers, or underscores. Accounts created earlier register their username the next time they log in.
 
 ### Firebase setup
 
 The app still needs its local, ignored `GoogleService-Info.plist`. `firebase/firestore.rules` is the complete Firestore ruleset for the shared project: users, usernames, ratings, and Friends. To deploy, paste it into the Firebase console (Firestore Database → Rules) and publish. Edit rules in this file first so the deployed rules and the emulator tests stay the same.
 
-- **Ratings** can be read by their owner and by accepted friends (for Feed). Only the owner can change or delete one. Listing every rating in the project is not allowed.
+- **Ratings** can be read by their owner and by accepted friends (for Feed). Only the owner can change or delete one, except that friends can add or remove their own like. Listing every rating in the project is not allowed.
 - **Usernames** can be checked by any signed-in member and created once, only by the account whose profile has that username.
 
 Friends search only finds members who turned on discovery. Accounts created before Friends existed need to open Friends → Find → **Enable friend discovery** before others can find them. Enabling requires a `name` and `username` in the user's profile. Very early accounts may be missing `name`, which shows "Your Blend profile is missing a name or username"; add the field to that user's document in the console.

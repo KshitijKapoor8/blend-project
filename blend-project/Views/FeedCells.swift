@@ -82,9 +82,11 @@ final class FeedReviewCell: FeedCardCell {
     private let photo = UIImageView()
     private let chips = UIStackView()
     private let comment = UILabel()
-    private let likes = UILabel()
-    private let replies = UILabel()
+    private let like = UIButton(type: .system)
     private var photoTask: Task<Void, Never>?
+
+    /// Called when the heart is tapped.
+    var onLike: (() -> Void)?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -119,18 +121,24 @@ final class FeedReviewCell: FeedCardCell {
         comment.textColor = .blendInk
         comment.numberOfLines = 0
 
-        for label in [likes, replies] {
-            label.font = .preferredFont(forTextStyle: .subheadline)
-            label.adjustsFontForContentSizeCategory = true
-            label.textColor = .blendInk
+        var likeStyle = UIButton.Configuration.plain()
+        likeStyle.imagePadding = 6
+        likeStyle.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8)
+        likeStyle.baseForegroundColor = .blendEspresso
+        likeStyle.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = .preferredFont(forTextStyle: .subheadline)
+            return attributes
         }
-        let engagement = UIStackView(arrangedSubviews: [likes, replies, UIView()])
-        engagement.spacing = 24
+        like.configuration = likeStyle
+        like.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        like.addAction(UIAction { [weak self] _ in self?.onLike?() }, for: .touchUpInside)
+        let engagement = UIStackView(arrangedSubviews: [like, UIView()])
 
         let stack = UIStackView(arrangedSubviews: [header, photo, chipRow, comment, engagement])
         stack.axis = .vertical
         stack.spacing = 14
-        stack.setCustomSpacing(18, after: comment)
+        stack.setCustomSpacing(6, after: comment)
         fill(with: stack)
     }
 
@@ -142,7 +150,7 @@ final class FeedReviewCell: FeedCardCell {
         photo.image = nil
     }
 
-    func configure(with item: FeedItem) {
+    func configure(with item: FeedItem, viewer: String?) {
         let rating = item.rating
         avatar.text = item.author.initials
         headline.attributedText = Self.headline(item.author.name, " rated ", rating.shopName)
@@ -160,10 +168,14 @@ final class FeedReviewCell: FeedCardCell {
         comment.text = rating.comment
         comment.isHidden = rating.comment.isEmpty
 
-        likes.attributedText = Self.count(rating.likeCount, symbol: "heart")
-        likes.accessibilityLabel = rating.likeCount == 1 ? "1 like" : "\(rating.likeCount) likes"
-        replies.attributedText = Self.count(rating.commentCount, symbol: "bubble.left")
-        replies.accessibilityLabel = rating.commentCount == 1 ? "1 comment" : "\(rating.commentCount) comments"
+        let liked = viewer.map(rating.likedBy.contains) ?? false
+        like.configuration?.image = UIImage(systemName: liked ? "heart.fill" : "heart")
+        like.configuration?.title = "\(rating.likeCount)"
+        like.isEnabled = viewer != nil
+        like.accessibilityLabel = "Like"
+        like.accessibilityValue = (rating.likeCount == 1 ? "1 like" : "\(rating.likeCount) likes")
+            + (liked ? ", including you" : "")
+        like.accessibilityTraits = liked ? [.button, .selected] : .button
 
         photo.isHidden = rating.photoURL == nil
         photo.accessibilityLabel = "\(item.author.name)'s photo of \(rating.shopName)"
@@ -191,12 +203,6 @@ final class FeedReviewCell: FeedCardCell {
         chip.clipsToBounds = true
         chip.setContentCompressionResistancePriority(.required, for: .horizontal)
         return chip
-    }
-
-    private static func count(_ value: Int, symbol: String) -> NSAttributedString {
-        let text = NSMutableAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: symbol)!))
-        text.append(NSAttributedString(string: "  \(value)"))
-        return text
     }
 }
 

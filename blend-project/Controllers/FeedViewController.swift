@@ -127,13 +127,37 @@ final class FeedViewController: UIViewController, UITableViewDataSource {
         table.reloadData()
     }
 
+    private func toggleLike(_ ratingId: String) {
+        guard let user, let item = items.first(where: { $0.rating.id == ratingId }) else { return }
+        let liked = !item.rating.likedBy.contains(user)
+        setLiked(liked, ratingId: ratingId, user: user)
+        Task { [weak self] in
+            do {
+                try await self?.service.setLiked(liked, ratingId: ratingId, user: user)
+            } catch {
+                self?.setLiked(!liked, ratingId: ratingId, user: user)
+                self?.showMessage("Couldn't update like", "Check your connection and try again.")
+            }
+        }
+    }
+
+    /// Updates one post right away, without waiting for Firestore.
+    private func setLiked(_ liked: Bool, ratingId: String, user: String) {
+        guard let index = items.firstIndex(where: { $0.rating.id == ratingId }) else { return }
+        items[index].rating.likedBy.removeAll { $0 == user }
+        if liked { items[index].rating.likedBy.append(user) }
+        table.reconfigureRows(at: [IndexPath(row: index, section: 0)])
+    }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { items.count }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let item = items[indexPath.row]
         if item.kind == .review {
             let cell = tableView.dequeueReusableCell(withIdentifier: FeedReviewCell.identifier, for: indexPath) as! FeedReviewCell
-            cell.configure(with: item)
+            cell.configure(with: item, viewer: user)
+            let ratingId = item.rating.id
+            cell.onLike = { [weak self] in self?.toggleLike(ratingId) }
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: FeedActivityCell.identifier, for: indexPath) as! FeedActivityCell

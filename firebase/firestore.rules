@@ -30,6 +30,12 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/friendConnections/$(id)).data.status == 'accepted';
     }
 
+    function onlyOwnLikeChanged(before, after) {
+      let me = [request.auth.uid].toSet();
+      return after is list && after.size() == after.toSet().size()
+        && (after.toSet() == before.toSet().union(me) || after.toSet() == before.toSet().difference(me));
+    }
+
     match /ratings/{ratingId} {
       // Owner can read, update and delete. The id check covers reading a rating that doesn't exist yet.
       allow get, update, delete: if signedIn() &&
@@ -37,6 +43,11 @@ service cloud.firestore {
 
       // Friends can read each other's ratings (Feed).
       allow get: if signedIn() && acceptedFriend(resource.data.userId);
+
+      // Friends can like and unlike: add or remove only their own uid in likedBy, nothing else.
+      allow update: if signedIn() && acceptedFriend(resource.data.userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy'])
+        && onlyOwnLikeChanged(resource.data.get('likedBy', []), request.resource.data.likedBy);
 
       // Lists only of your own ratings (Profile) or accepted friends' ratings (Feed).
       allow list: if signedIn() &&

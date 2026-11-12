@@ -9,10 +9,11 @@ struct FeedRating {
     let categories: [String: Int]
     let comment: String
     let photoURL: URL?
-    let likeCount: Int
-    let commentCount: Int
+    var likedBy: [String]
     let createdAt: Date
     let updatedAt: Date
+
+    var likeCount: Int { likedBy.count }
 }
 
 /// One entry in the feed.
@@ -26,7 +27,7 @@ struct FeedItem {
         case revisit
     }
 
-    let rating: FeedRating
+    var rating: FeedRating
     let author: FriendProfile
     let kind: Kind
 
@@ -48,7 +49,7 @@ struct FeedItem {
             .map { (name: $0.key.capitalized, value: $0.value) }
     }
 
-    /// Builds the feed from friends' ratings, newest first.
+    /// Builds the feed from friends' ratings
     static func build(from ratings: [FeedRating], authors: [String: FriendProfile], limit: Int = 50) -> [FeedItem] {
         var shopNumbers: [String: Int] = [:]
         for (_, own) in Dictionary(grouping: ratings, by: \.userId) {
@@ -74,7 +75,7 @@ struct FeedItem {
         .map { $0 }
     }
 
-    /// Short age like "Now", "5m", "2h", "Yesterday", "3d" or "Nov 2".
+    /// Shorted version of ages
     static func shortAge(_ date: Date, now: Date = Date(), calendar: Calendar = .current) -> String {
         let seconds = max(0, now.timeIntervalSince(date))
         switch seconds {
