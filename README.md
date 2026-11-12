@@ -4,20 +4,25 @@
 
 | Team Member | Contributions |
 |---|---|
-| **Karnika Choudhury (25%)** | • Linked Firebase backend to the project<br>• Set up storage bucket for profile picture images<br>• Added ability to change profile picture and bio in Settings, updating the user model |
-| **Kshitij Kapoor (25%)** | • Created much of the UI<br>• Implemented the rate coffee shops functionality |
-| **Aarnawa Koirala (25%)** | • Set up Firebase/Firestore<br>• Set up the users model and created the Blend app<br>• Created the register/login page |
-| **Pranav Tonpe (25%)** | • Created the Discover page, with the ability to search coffee shops by radius and city location |
+| **Karnika Choudhury (25%)** | • Fixed bugs left over from the Alpha release<br>• Tested code from others heavily  |
+| **Kshitij Kapoor (25%)** | • Added features to map page functionality<br>• Added the ability to view a coffee's page from the discover page |
+| **Aarnawa Koirala (25%)** | • Created the Feed page & functionality |
+| **Pranav Tonpe (25%)** | • Created the Friends and Map pages & functionality |
 
-## Deviations
+
+## Alpha Deviations
 
 - **Discover radius:** The Discover page should use the radius stored in the user's profile. This is a minor fix planned for the next release.
 - **Ratings:** For now, the proper coffee shop feed is not built so a user's own ratings are simply stored in their profile. We are unsure if we will keep this UI but it demonstrates the functionality for the alpha release. The optional adding of pictures is also not yet fully functional. Bug fix and decision regarding UI will be finalized in beta.
 
+
+## Beta Deviations
+We did not have any significant deviations for beta
+
 ## Beta: Friends and Maps
 
 - **Friends:** Open the tab or tap the Friends card in Profile. In **Find**, enable discovery and search for a teammate's exact username. Both accounts need to opt in before a request can be sent. **Requests** separates received and sent requests. The recipient can accept or decline, the sender can cancel, and either friend can remove the connection. Pull to refresh for updates. Profile counts accepted friends.
-- **Maps:** In **Discover**, pick a location and radius, then switch between **List** and **Map**. The same café results and name filter power both views. The map outlines the selected radius, pins matching shops, and can recenter after panning. Open a list row or a pin's details button to view the place or get walking directions in Apple Maps. Edit the radius in place with **Apply radius**. No extra map key or device-location permission is needed.
+- **Maps:** In **Discover**, pick a location and radius, then switch between **List** and **Map**. The same café results and name filter power both views. The map outlines the selected radius, pins matching shops, and can recenter after panning. Open a list row or a pin's details button to go to the coffee shop's page, where the user can view the place or get walking directions in Apple Maps. Edit the radius in place with **Apply radius**. No extra map key or device-location permission is needed.
 
 ## Beta: Feed
 
