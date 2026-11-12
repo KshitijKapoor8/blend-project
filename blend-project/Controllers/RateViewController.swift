@@ -13,9 +13,9 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
     @IBOutlet weak var photoImageView: UIImageView!
     @IBOutlet weak var commentTextView: UITextView!
 
-    // Set by whichever screen pushes this one; defaults to the demo shop until shop browsing exists.
-    var shopId = "epoch-coffee"
-    var shopName = "Epoch Coffee"
+    // Set by whichever screen pushes this one (the cafe detail page).
+    var shopId = ""
+    var shopName = ""
 
     // Firestore keys for each category, indexed by tag.
     private let categoryKeys = ["product", "vibe", "service", "seating", "location"]
@@ -39,7 +39,9 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
     }
 
     private func loadExistingRating() {
-        guard !isLoadingRating, let uid = Auth.auth().currentUser?.uid else { return }
+        guard !shopId.isEmpty, !isLoadingRating, let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
         loadedRatingUserID = nil
         isLoadingRating = true
         setRatingFieldsEnabled(false)
@@ -120,6 +122,10 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
         view.endEditing(true)
         guard let uid = Auth.auth().currentUser?.uid else {
             showMessage("Not signed in", "Please log in and try again.")
+            return
+        }
+        guard !shopId.isEmpty else {
+            showMessage("No shop selected", "Open a coffee shop to rate it.")
             return
         }
         guard loadedRatingUserID == uid else {
