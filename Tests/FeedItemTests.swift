@@ -8,7 +8,7 @@ struct FeedItemTests {
         func rating(_ id: String, by user: String, created: Double, updated: Double? = nil,
                     comment: String = "", photo: String? = nil, categories: [String: Int] = [:]) -> FeedRating {
             FeedRating(id: id, userId: user, shopName: id, score: 4.2, categories: categories, comment: comment,
-                       photoURL: photo.flatMap(URL.init(string:)), likeCount: 0, commentCount: 0,
+                       photoURL: photo.flatMap(URL.init(string:)), likedBy: [],
                        createdAt: now.addingTimeInterval(-created), updatedAt: now.addingTimeInterval(-(updated ?? created)))
         }
         let authors = [

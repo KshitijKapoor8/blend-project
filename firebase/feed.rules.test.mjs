@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { test } from 'node:test';
 
 test('ratings are readable by their owner and accepted friends only', async () => {
@@ -43,6 +43,21 @@ test('ratings are readable by their owner and accepted friends only', async () =
 
     // Friends can read but not change each other's ratings.
     await assertFails(setDoc(doc(db.alex, 'ratings', 'blair_epoch'), { userId: 'blair', score: 1 }));
+    await assertFails(updateDoc(doc(db.alex, 'ratings', 'blair_epoch'), { score: 1 }));
+
+    // Likes: friends add or remove only their own uid.
+    const blairs = (actor) => doc(actor, 'ratings', 'blair_epoch');
+    await assertSucceeds(updateDoc(blairs(db.alex), { likedBy: arrayUnion('alex') }));
+    await assertSucceeds(updateDoc(blairs(db.alex), { likedBy: arrayUnion('alex') }));
+    await assertFails(updateDoc(blairs(db.alex), { likedBy: arrayUnion('casey') }));
+    await assertFails(updateDoc(blairs(db.alex), { likedBy: ['alex', 'alex'] }));
+    await assertFails(updateDoc(blairs(db.alex), { likedBy: arrayUnion('alex'), score: 5 }));
+    await assertFails(updateDoc(blairs(db.casey), { likedBy: arrayUnion('casey') }));
+    await assertFails(updateDoc(doc(db.alex, 'ratings', 'drew_epoch'), { likedBy: arrayUnion('alex') }));
+    await env.withSecurityRulesDisabled(c => updateDoc(blairs(c.firestore()), { likedBy: arrayUnion('drew') }));
+    await assertFails(updateDoc(blairs(db.alex), { likedBy: arrayRemove('drew') }));
+    await assertSucceeds(updateDoc(blairs(db.alex), { likedBy: arrayRemove('alex') }));
+    await assertSucceeds(updateDoc(blairs(db.blair), { score: 5 }));
   } finally {
     await env.cleanup();
   }
