@@ -27,6 +27,9 @@ class LoginViewController: UIViewController {
                 self.showMessage("Couldn't log in", error.localizedDescription)
                 return
             }
+            if let uid = Auth.auth().currentUser?.uid {
+                UsernameRegistry.registerExisting(uid: uid)
+            }
             self.passwordField.text = nil
             self.performSegue(withIdentifier: "showMain", sender: sender)
         }

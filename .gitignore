@@ -6,3 +6,4 @@ build/
 *.local.xcconfig
 GoogleService-Info.plist
 blend-project/GoogleService-Info.plist
+buildServer.json

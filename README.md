@@ -19,30 +19,45 @@
 - **Friends:** Open the tab or tap the Friends card in Profile. In **Find**, enable discovery and search for a teammate's exact username. Both accounts need to opt in before a request can be sent. **Requests** separates received and sent requests. The recipient can accept or decline, the sender can cancel, and either friend can remove the connection. Pull to refresh for updates. Profile counts accepted friends.
 - **Maps:** In **Discover**, pick a location and radius, then switch between **List** and **Map**. The same café results and name filter power both views. The map outlines the selected radius, pins matching shops, and can recenter after panning. Open a list row or a pin's details button to view the place or get walking directions in Apple Maps. Edit the radius in place with **Apply radius**. No extra map key or device-location permission is needed.
 
-### Firebase setup for Friends
+## Beta: Feed
 
-The existing app still needs its local, ignored `GoogleService-Info.plist`. Friends uses two new collections, `friendDirectory` and `friendConnections`. Before testing Friends against a shared Firebase project, have the project owner merge the Friends functions and collection matches from `firebase/friends.rules` into the existing `/databases/{database}/documents` match in that project's Firestore rules. Preserve the existing users and ratings rules and check that no overlapping wildcard grants broader access to the new collections. **Do not replace the deployed rules with this file**; it is standalone for the emulator tests. No production rules or records were changed by this branch.
+- **Feed:** The Feed tab lists your accepted friends' ratings, newest first. A rating with a comment or photo is a full card with the overall score, the three highest category scores, and the comment. Other ratings are one line: "tried a new spot" for a first rating (numbered by how many shops that friend has rated) or "is back at" for a shop they rated again. The button in the top right opens Friends. Pull to refresh.
+- **Likes and comments** are display only for now. Cards show `likeCount` and `commentCount` from the rating if present, and nothing writes them yet.
+- **Unique usernames:** Sign-up now claims `usernames/{lowercased username}` together with the profile, because the rules don't allow searching other people's profiles. Usernames are 1–30 letters, numbers, or underscores. Accounts created earlier register their username the next time they log in.
+
+### Firebase setup
+
+The app still needs its local, ignored `GoogleService-Info.plist`. `firebase/firestore.rules` is the complete Firestore ruleset for the shared project: users, usernames, ratings, and Friends. To deploy, paste it into the Firebase console (Firestore Database → Rules) and publish. Edit rules in this file first so the deployed rules and the emulator tests stay the same.
+
+- **Ratings** can be read by their owner and by accepted friends (for Feed). Only the owner can change or delete one. Listing every rating in the project is not allowed.
+- **Usernames** can be checked by any signed-in member and created once, only by the account whose profile has that username.
+
+Friends search only finds members who turned on discovery. Accounts created before Friends existed need to open Friends → Find → **Enable friend discovery** before others can find them. Enabling requires a `name` and `username` in the user's profile. Very early accounts may be missing `name`, which shows "Your Blend profile is missing a name or username"; add the field to that user's document in the console.
 
 The opt-in directory holds only name and username fields and is readable by signed-in Blend members. Email, phone, and private profile fields are never copied. Only the two participants can read a connection; its display names and usernames are retained for them while a request or friendship exists, even if one person hides from discovery. Firestore enforces a single document per pair and only the recipient can accept a pending request.
 
 ### Verify
 
-With compatible Xcode and Firebase configured, try two beta accounts: enable discovery on both, send a request, accept it on the other account, then check the Friends list and Profile count. Also try declining, canceling, removing a friend, and hiding an account from search. For Discover, search near West Campus, Austin, compare pins and list results, change the name filter and radius, and open walking directions.
+With compatible Xcode and Firebase configured, try two beta accounts: enable discovery on both, send a request, accept it on the other account, then check the Friends list and Profile count. Also try declining, canceling, removing a friend, and hiding an account from search. Once two accounts are friends, rate a shop on one (with and without a comment) and pull to refresh Feed on the other. Try signing up with a username that's already taken, in different capitalization. For Discover, search near West Campus, Austin, compare pins and list results, change the name filter and radius, and open walking directions.
 
 Run the rules tests with Node.js and Java against the local Firestore emulator:
 
 ```sh
 test_dir="$(mktemp -d)"
-cp firebase/{friends.rules,friends.rules.test.mjs,emulator.json} "$test_dir/"
+cp firebase/{firestore.rules,*.rules.test.mjs,emulator.json} "$test_dir/"
 cd "$test_dir"
 npm install firebase-tools@14.27.0 @firebase/rules-unit-testing@5.0.0 firebase@12.6.0
-npx firebase emulators:exec --config emulator.json --project demo-blend-friends --only firestore 'node --test friends.rules.test.mjs'
+npx firebase emulators:exec --config emulator.json --project demo-blend --only firestore \
+  'node --test friends.rules.test.mjs feed.rules.test.mjs usernames.rules.test.mjs'
 ```
 
-Run the deterministic café filtering checks on an Apple Silicon Mac with the macOS 26 SDK:
+Run the deterministic café filtering and feed checks on an Apple Silicon Mac with the macOS 26 SDK:
 
 ```sh
 xcrun swiftc -target arm64-apple-macos26.0 -module-cache-path /tmp/blend-test-module-cache \
   blend-project/Models/CafeSearch.swift Tests/CafeSearchTests.swift -o /tmp/blend-search-tests
 /tmp/blend-search-tests
+xcrun swiftc -target arm64-apple-macos26.0 -module-cache-path /tmp/blend-test-module-cache \
+  blend-project/Models/FeedItem.swift blend-project/Models/FriendConnection.swift Tests/FeedItemTests.swift -o /tmp/blend-feed-tests
+/tmp/blend-feed-tests
 ```
