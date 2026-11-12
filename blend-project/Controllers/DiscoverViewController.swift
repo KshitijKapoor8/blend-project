@@ -237,19 +237,7 @@ final class DiscoverViewController: UIViewController, UITableViewDataSource, UIT
 
     private func showDetails(for cafe: NearbyCafe) {
         view.endEditing(true)
-        let item = cafe.mapItem
-        let details = [cafe.distanceText, item.address?.fullAddress].compactMap { $0 }.joined(separator: "\n")
-        let alert = UIAlertController(title: item.name ?? "Coffee shop", message: details, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Open in Apple Maps", style: .default) { [weak self] _ in
-            if !item.openInMaps() { self?.showMessage("Couldn't open Apple Maps") }
-        })
-        alert.addAction(UIAlertAction(title: "Walking directions", style: .default) { [weak self] _ in
-            if !item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking]) {
-                self?.showMessage("Couldn't open directions")
-            }
-        })
-        alert.addAction(UIAlertAction(title: "Close", style: .cancel))
-        present(alert, animated: true)
+        navigationController?.pushViewController(CafeDetailViewController(cafe: cafe), animated: true)
     }
 
     private func saveArea(_ area: CafeSearchArea) {

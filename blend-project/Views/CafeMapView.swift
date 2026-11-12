@@ -114,14 +114,17 @@ final class CafeMapView: MKMapView, MKMapViewDelegate {
         marker.displayPriority = .required
         marker.markerTintColor = .blendEspresso
         marker.glyphImage = UIImage(systemName: "cup.and.saucer.fill")
-        marker.canShowCallout = true
-        marker.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
-        marker.rightCalloutAccessoryView?.accessibilityLabel = "Coffee shop details"
+        // Tapping a pin opens the shop's page directly, so no callout bubble.
+        marker.canShowCallout = false
+        marker.titleVisibility = .adaptive
+        marker.accessibilityHint = "Opens the coffee shop's page"
         return marker
     }
 
-    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
-        guard let pin = view.annotation as? CafePin else { return }
+    func mapView(_ mapView: MKMapView, didSelect annotation: any MKAnnotation) {
+        guard let pin = annotation as? CafePin else { return }
+        // Deselect so tapping the same pin again after coming back still opens it.
+        deselectAnnotation(annotation, animated: false)
         onShowCafe?(pin.cafe)
     }
 }

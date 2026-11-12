@@ -23,6 +23,8 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
     private let db = Firestore.firestore()
     private let storage = Storage.storage()
     private var selectedPhoto: UIImage?
+    private var loadedRatingUserID: String?
+    private var isLoadingRating = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +34,53 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
             ratingView.onChange = { [weak self] _ in self?.updateScore() }
         }
         updateScore()
+        setRatingFieldsEnabled(false)
+        loadExistingRating()
+    }
+
+    private func loadExistingRating() {
+        guard !isLoadingRating, let uid = Auth.auth().currentUser?.uid else { return }
+        loadedRatingUserID = nil
+        isLoadingRating = true
+        setRatingFieldsEnabled(false)
+
+        let ratingRef = db.collection("ratings").document("\(uid)_\(shopId)")
+        ratingRef.getDocument(source: .server) { [weak self] snapshot, error in
+            guard let self else { return }
+            self.isLoadingRating = false
+            guard Auth.auth().currentUser?.uid == uid else { return }
+            guard let snapshot, error == nil else {
+                let alert = UIAlertController(
+                    title: "Couldn't load your rating",
+                    message: "Try again before making changes to this rating.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
+                    self?.loadExistingRating()
+                })
+                self.present(alert, animated: true)
+                return
+            }
+
+            let data = snapshot.data()
+            let categories = data?["ratings"] as? [String: Int] ?? [:]
+            for ratingView in self.ratingViews where self.categoryKeys.indices.contains(ratingView.tag) {
+                let key = self.categoryKeys[ratingView.tag]
+                ratingView.rating = categories[key] ?? 0
+            }
+            self.commentTextView.text = data?["comment"] as? String ?? ""
+            self.updateScore()
+            self.loadedRatingUserID = uid
+            self.setRatingFieldsEnabled(true)
+        }
+    }
+
+    private func setRatingFieldsEnabled(_ enabled: Bool) {
+        for ratingView in ratingViews {
+            ratingView.isUserInteractionEnabled = enabled
+        }
+        commentTextView.isEditable = enabled
     }
 
     private var averageScore: Double {
@@ -73,6 +122,11 @@ class RateViewController: UIViewController, PHPickerViewControllerDelegate {
             showMessage("Not signed in", "Please log in and try again.")
             return
         }
+        guard loadedRatingUserID == uid else {
+            loadExistingRating()
+            return
+        }
+
         let storageBucket = Storage.storage().reference().bucket
         print("[RateVC] UID:", uid)
         print("[RateVC] Storage bucket:", storageBucket)
